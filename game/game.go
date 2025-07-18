@@ -9,10 +9,27 @@ type Item struct {
 	X int
 	Y int
 }
+
+type Key byte
+
+const (
+	Copper Key = iota + 1
+	Jade
+	Crystal
+)
+
 type Player struct {
 	Name string
 	Item // Player embeds Item
-	Keys []string
+	Keys []Key
+}
+
+// Interface set of methods,(and types), we define as "what you need" not "what you provide"
+// Interfaces are small (stdlib average ~2 methods per interface)
+// if interface with more than 4 methods - think again
+// start with concrete types, discover interfaces
+type Mover interface {
+	Move(int, int)
 }
 
 const (
@@ -60,6 +77,24 @@ func NewItem(x, y int) (*Item, error) {
 	return &i, nil
 }
 
+//go install golang.org/x/tools/cmd/stringer@latest
+// In ~/.zshrc
+//export PATH="$(go env GOPATH)/bin:${PATH}"
+
+// String implement the fmt.Stringer interface.
+func (k Key) String() string {
+	switch k {
+	case Copper:
+		return "copper"
+	case Jade:
+		return "jade"
+	case Crystal:
+		return "crystal"
+	default:
+		return fmt.Sprintf("<Key %d>", k)
+	}
+}
+
 func main() {
 	var i Item
 	fmt.Printf("i: %#v\n", i)
@@ -89,17 +124,27 @@ func main() {
 
 	p2 := Player{
 		Name: "Ernie",
-		Keys: []string{},
+		Keys: []Key{},
 	}
-	err := p2.Found("jade")
+	err := p2.Found(Copper)
 	if err != nil {
 		fmt.Println("jade: ", err)
 	}
-	err = p2.Found("nickel")
+	err = p2.Found(Key(7))
 	if err != nil {
-		fmt.Println("nickel: ", err)
+		fmt.Println(": ", err)
 	}
 	fmt.Println("keys:", p2.Keys)
+
+	ms := []Mover{
+		&i,
+		&p1,
+	}
+
+	MoveAll(ms, 50, 7)
+	for _, m := range ms {
+		fmt.Println(m)
+	}
 }
 
 /*Exercise:
@@ -109,8 +154,8 @@ func main() {
 	- It should add a key only once
 */
 
-func (p *Player) Found(key string) error {
-	k := []string{"jade", "copper", "crystal"}
+func (p *Player) Found(key Key) error {
+	k := []Key{Jade, Copper, Crystal}
 
 	f := slices.Contains(k, key)
 	if f {
@@ -146,3 +191,29 @@ func (i *Item) Move(dx, dy int) {
 	i.X += dx
 	i.Y += dy
 }
+
+func MoveAll(ms []Mover, dx, dy int) {
+	for _, m := range ms {
+		m.Move(dx, dy)
+	}
+}
+
+/*
+Thought exercise: Sorting Interfaces
+
+func Sort(s Sortable){
+//...
+}
+
+// What do you need to be able to sort this?
+// data type
+// data
+
+//all you need are 3 methods below
+type Sortable interface{
+ Less(i, j int)bool
+ Swap(i,j int)
+ len()int
+
+}
+*/
