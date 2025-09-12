@@ -217,3 +217,5 @@ type Sortable interface{
 
 }
 */
+
+// Rule of thumb: Accept interface, return types
