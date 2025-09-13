@@ -38,7 +38,7 @@ func Max[T Number](s []T) (T, error) {
 	return m, nil
 }
 
-// Exercise:" Write Max Function for ints or floats"
+// Exercise: Write Max Function for ints or floats
 // DOnt use inbuilt max function
 
 func (m *Matrix[T]) At(row, col int) T {
