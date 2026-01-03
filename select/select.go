@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-	ch1, ch2 := make(chan string), make(chan string)
+	// 1 means its a buffered channel, this avoids goroutine leaks - where the go routines are running but the programme has finished.
+	ch1, ch2 := make(chan string, 1), make(chan string, 1)
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
