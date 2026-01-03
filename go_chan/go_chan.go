@@ -25,8 +25,8 @@ func main() {
 	v := <-ch // receive
 	fmt.Println(v)
 
-	fmt.Println(sleepSort([]int{20, 30, 10})) //[10,20,30]
-
+	fmt.Println(sleepSort([]int{20, 30, 10}))                //[10,20,30]
+	fmt.Println("sleepSort2", sleepSort2([]int{20, 30, 10})) //[10,20,30]
 	go func() {
 		for i := range 4 {
 			ch <- i
@@ -95,3 +95,20 @@ func sleepSort(values []int) []int {
 - closing a closed or nil channel will panic
 - send/receive to a nil channel will block forever.
 */
+
+func sleepSort2(values []int) []int {
+	sortedValues := []int{}
+	ch := make(chan int)
+	for _, v := range values {
+		go func() {
+			time.Sleep(time.Duration(v) * time.Millisecond)
+			ch <- v
+		}()
+	}
+	for range values {
+		value := <-ch
+		sortedValues = append(sortedValues, value)
+	}
+
+	return sortedValues
+}

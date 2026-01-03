@@ -27,7 +27,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -70,7 +69,7 @@ func parseSigFile(r io.Reader) (map[string]string, error) {
 }
 
 func main() {
-	rootDir := "/Users/emmarandle/ardan_lab_golang_fundamentals/taxi_check/taxi" // Change to where to unzipped taxi-sha256.zip
+	rootDir := "tmp/taxi" // Change to where to unzipped taxi-sha256.zip
 	file, err := os.Open(path.Join(rootDir, "sha256sum.txt"))
 	if err != nil {
 		log.Fatalf("error: %s", err)
@@ -85,29 +84,52 @@ func main() {
 	start := time.Now()
 	ok := true
 
-	var wg sync.WaitGroup
-	wg.Add(len(sigs))
-	
+	/* Original code
 	for name, signature := range sigs {
 		fileName := path.Join(rootDir, name) + ".bz2"
-		
-		// fan-out
-		go func() {
-			defer wg.Done()
-			sig, err := fileSig(fileName)
-			if err != nil {
+		sig, err := fileSig(fileName)
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s - %s\n", fileName, err)
 			ok = false
+			continue
 		}
 
 		if sig != signature {
 			ok = false
 			fmt.Printf("error: %s mismatch\n", fileName)
 		}
-		}()
-	}
+	}*/
 
-	wg.Wait()
+	type check struct {
+		sig       string
+		signature string
+		fileName  string
+		err       error
+	}
+	ch := make(chan check)
+	// Need to add fan-out method here
+	for name, signature := range sigs {
+		go func(name, signature string) {
+			c := check{signature: signature}
+			defer func() { ch <- c }()
+			c.fileName = path.Join(rootDir, name) + ".bz2"
+			c.sig, c.err = fileSig(c.fileName)
+		}(name, signature)
+	}
+	// receiver
+	for range sigs {
+		c := <-ch
+		if c.err != nil {
+			fmt.Fprintf(os.Stderr, "error: %s - %s\n", c.fileName, c.err)
+			ok = false
+
+		}
+
+		if c.sig != c.signature {
+			ok = false
+			fmt.Printf("error: %s mismatch\n", c.fileName)
+		}
+	}
 
 	duration := time.Since(start)
 	fmt.Printf("processed %d files in %v\n", len(sigs), duration)
