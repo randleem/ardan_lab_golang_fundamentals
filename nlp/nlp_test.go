@@ -2,9 +2,10 @@ package nlp
 
 import (
 	"os"
-	"slices"
 	"testing"
 
+	// require stops the code if a test fails
+	// Require shows you a diff if a test errors, to diagnose bugs
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,9 +16,13 @@ func TestTokenize(t *testing.T) {
 	text := "Who's on first?"
 	tokens := Tokenize(text)
 	expected := []string{"who", "s", "on", "first"}
+	require.Equal(t, expected, tokens)
+
+	/* Code beofre Testify
 	if !slices.Equal(expected, tokens) {
 		t.Fatalf("expected %#v, got %#v", expected, tokens)
 	}
+	*/
 }
 
 func TestTokenizeTable(t *testing.T) {
@@ -32,9 +37,12 @@ func TestTokenizeTable(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.text, func(t *testing.T) {
 			tokens := Tokenize(tc.text)
+			require.Equal(t, tc.tokens, tokens)
+			/* Code beofre Testify
 			if !slices.Equal(tc.tokens, tokens) {
 				t.Fatalf("expected %#v, got %#v", tc.tokens, tokens)
 			}
+			*/
 		})
 	}
 }
