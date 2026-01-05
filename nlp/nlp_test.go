@@ -4,9 +4,12 @@ import (
 	"os"
 	"slices"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTokenize(t *testing.T) {
+	_ = require.New
 	// setup: call a function
 	// teardown: defer/t.Cleanup
 	text := "Who's on first?"

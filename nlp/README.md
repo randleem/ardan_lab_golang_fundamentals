@@ -1,2 +1,1 @@
-#nlp provides naturallanguage toold for processing in go.
-package nlp
+#nlp provides natural language toold for processing in go.
