@@ -1,11 +1,13 @@
 package nlp
 
 import (
+	"io"
 	"os"
 	"testing"
 
 	// require stops the code if a test fails
 	// Require shows you a diff if a test errors, to diagnose bugs
+	"github.com/BurntSushi/toml"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,19 +27,46 @@ func TestTokenize(t *testing.T) {
 	*/
 }
 
+// Exercise: Resd test cased from tokenize_cases.toml
+// instead of in-memory slice
 func TestTokenizeTable(t *testing.T) {
-	cases := []struct {
-		text   string
-		tokens []string
-	}{
-		{"who's on first", []string{"who", "s", "on", "first"}},
-		{"what's on second", []string{"what", "s", "on", "second"}},
-		{"", nil},
+	// cases := []struct {
+	// 	text   string
+	// 	tokens []string
+	// }{
+	// 	{"who's on first", []string{"who", "s", "on", "first"}},
+	// 	{"what's on second", []string{"what", "s", "on", "second"}},
+	// 	{"", nil},
+	// }
+	type testCases struct {
+		Text   string
+		Tokens []string
+		Name   string
 	}
-	for _, tc := range cases {
-		t.Run(tc.text, func(t *testing.T) {
-			tokens := Tokenize(tc.text)
-			require.Equal(t, tc.tokens, tokens)
+	file, err := os.Open("./testdata/tokenize_cases.toml")
+	require.NoError(t, err)
+	defer file.Close()
+
+	b, err := io.ReadAll(file)
+	require.NoError(t, err)
+	var cases struct {
+		Case []testCases `toml:"case"`
+	}
+	err = toml.Unmarshal([]byte(b), &cases)
+	require.NoError(t, err)
+
+	// Instructors method
+	// cases := toml.NewDecoder(file)
+	//_, err = dec.Decode(&cases)
+
+	for _, tc := range cases.Case {
+		name := tc.Name
+		if name == "" {
+			name = tc.Text
+		}
+		t.Run(name, func(t *testing.T) {
+			tokens := Tokenize(tc.Text)
+			require.Equal(t, tc.Tokens, tokens)
 			/* Code beofre Testify
 			if !slices.Equal(tc.tokens, tokens) {
 				t.Fatalf("expected %#v, got %#v", tc.tokens, tokens)

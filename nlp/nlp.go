@@ -10,6 +10,9 @@ var wordRe = regexp.MustCompile(`[a-zA-Z]+`)
 
 // Tokenize returns tokens (lowercase) found in text.
 func Tokenize(text string) []string {
+	if text == "" {
+		return []string{}
+	}
 	words := wordRe.FindAllString(text, -1)
 	var tokens []string
 	for _, w := range words {
