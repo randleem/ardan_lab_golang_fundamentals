@@ -3,6 +3,7 @@ package nlp
 import (
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	// require stops the code if a test fails
@@ -90,4 +91,18 @@ func TestInCI(t *testing.T) {
 	if !inCI {
 		t.Skip("not in CI")
 	}
+}
+
+// FUZZ Test
+
+func FuzzTokenizer(f *testing.F) {
+	f.Add("") // can add own test data - empty string
+	fn := func(t *testing.T, text string) {
+		tokens := Tokenize(text)
+		lText := strings.ToLower(text)
+		for _, tok := range tokens {
+			require.Contains(t, lText, tok)
+		}
+	}
+	f.Fuzz(fn)
 }
