@@ -2,7 +2,6 @@
 text = "Who's on first?"
 tokens = [
     "who",
-    "s",
     "on",
     "first",
 ]
@@ -11,7 +10,6 @@ tokens = [
 text = "What's on second?"
 tokens = [
     "what",
-    "s",
     "on",
     "second",
 ]

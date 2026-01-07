@@ -18,7 +18,7 @@ func TestTokenize(t *testing.T) {
 	// teardown: defer/t.Cleanup
 	text := "Who's on first?"
 	tokens := Tokenize(text)
-	expected := []string{"who", "s", "on", "first"}
+	expected := []string{"who", "on", "first"}
 	require.Equal(t, expected, tokens)
 
 	/* Code beofre Testify
@@ -35,8 +35,8 @@ func TestTokenizeTable(t *testing.T) {
 	// 	text   string
 	// 	tokens []string
 	// }{
-	// 	{"who's on first", []string{"who", "s", "on", "first"}},
-	// 	{"what's on second", []string{"what", "s", "on", "second"}},
+	// 	{"who's on first", []string{"who", "on", "first"}},
+	// 	{"what's on second", []string{"what", "on", "second"}},
 	// 	{"", nil},
 	// }
 	type testCases struct {
