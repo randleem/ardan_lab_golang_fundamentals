@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"expvar"
 	_ "expvar"
+	"flag"
 	"fmt"
 	"io"
 	slog "log/slog"
@@ -16,10 +17,45 @@ import (
 
 var stemCalls = expvar.NewInt("stem.calls")
 
+/* configuration
+defaults < configuration file <environment variables <command line
+configuration : YAML, TOML... (not stdlib)
+environment: os.Getenv
+cammand line: flag
+
+external
+- viper + cobra = configuration + commandline
+- ardanlabs/conf https://github.com/ardanlabs/conf
+*/
+
+var config struct {
+	Addr string
+}
+
 func main() {
+	// standard librabry
+	config.Addr = os.Getenv("NLP_ADDR")
+	if config.Addr == "" {
+		config.Addr = ":8080"
+	}
+	flag.StringVar(&config.Addr, "addr", config.Addr, "address to listen on")
+	flag.Parse()
+
+	// IMPORTANT: validate config
+	if err := health(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: healthcheck -%s\n", err)
+		os.Exit(1)
+	}
 	api := API{
 		log: slog.Default().With("app", "nlp"),
 	}
+
+	api.log.Info("server starting", "address", config.Addr)
+	if err := http.ListenAndServe(config.Addr, nil); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		os.Exit(1)
+	}
+
 	// Routing
 	http.HandleFunc("GET /health", api.healthHandler)
 	http.HandleFunc("POST /tokenize", api.tokenizeHandler)
