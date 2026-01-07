@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"expvar"
+	_ "expvar"
 	"fmt"
 	"io"
+	slog "log/slog"
 	"net/http"
 	"os"
 
@@ -11,11 +14,16 @@ import (
 	"github.com/ardanlabs/nlp/stemmer"
 )
 
+var stemCalls = expvar.NewInt("stem.calls")
+
 func main() {
+	api := API{
+		log: slog.Default().With("app", "nlp"),
+	}
 	// Routing
-	http.HandleFunc("GET /health", healthHandler)
-	http.HandleFunc("POST /tokenize", tokenizeHandler)
-	http.HandleFunc("GET /stem/{word}", stemHandler)
+	http.HandleFunc("GET /health", api.healthHandler)
+	http.HandleFunc("POST /tokenize", api.tokenizeHandler)
+	http.HandleFunc("GET /stem/{word}", api.stemHandler)
 
 	// will look at all interfaces e.g. localhost:8080
 	addr := ":8080"
@@ -25,27 +33,36 @@ func main() {
 	}
 }
 
-func stemHandler(w http.ResponseWriter, r *http.Request) {
+type API struct {
+	log *slog.Logger
+}
+
+func (a *API) stemHandler(w http.ResponseWriter, r *http.Request) {
+	stemCalls.Add(1)
 	word := r.PathValue("word")
+	a.log.Info("stem", "word", word)
 	fmt.Fprintln(w, stemmer.Stem(word))
 }
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
+func (a *API) healthHandler(w http.ResponseWriter, r *http.Request) {
 	if err := health(); err != nil {
+		a.log.Error("health", "error", err)
 		http.Error(w, "health check failed", http.StatusInternalServerError)
 	}
 	fmt.Fprintln(w, "OK")
 }
 
-func tokenizeHandler(w http.ResponseWriter, r *http.Request) {
+func (a *API) tokenizeHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
+		a.log.Error("read", "error", err, "remote", r.RemoteAddr)
 		http.Error(w, "request body empty", http.StatusBadRequest)
 		return
 	}
 	// validation added by instructor
 	if len(string(b)) == 0 {
+		a.log.Error("read", "error", "empty request")
 		http.Error(w, "empty request", http.StatusBadRequest)
 		return
 	}

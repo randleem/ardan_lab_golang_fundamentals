@@ -1,6 +1,7 @@
 package main
 
 import (
+	slog "log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,8 +13,11 @@ import (
 func Test_healthHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/health", nil)
+	api := API{
+		log: slog.Default().With("app", "nlp"),
+	}
 
-	healthHandler(w, r)
+	api.healthHandler(w, r)
 	resp := w.Result()
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 }
