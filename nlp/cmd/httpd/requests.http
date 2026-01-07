@@ -2,7 +2,12 @@
 GET http://localhost:8080/health
 
 ### Tokenize
-POST http://lcoalhost:8080/tokenize
+POST http://localhost:8080/tokenize
+
 who's on first?
+
 # curl -d"Who's on first?" http://localhost:8080/tokenize
-# reurn json {"tokens": ["who", "on", "first"]}
+# return json {"tokens": ["who", "on", "first"]}
+
+### Stem
+GET http://localhost:8080/stem/working
