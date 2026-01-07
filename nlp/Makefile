@@ -3,4 +3,4 @@ test:
 	go test -v .
 
 fuzz: 
-	go test -run NOE -fuzz . -fuzztime 10s
+	go test -run NONE -fuzz . -fuzztime 10s
